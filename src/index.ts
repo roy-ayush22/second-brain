@@ -1,12 +1,14 @@
 import express from "express";
-import mongoose from "mongoose";
 import jwt from "jsonwebtoken";
-import bcrypt from "bcrypt-ts";
-import { string, z } from "zod";
+import dbConnection from "./db-server";
+import * as bcrypt from "bcrypt-ts";
+import { z } from "zod";
+import { userModel } from "./schema";
 const app = express();
-app.use(express());
+const port = 3000;
+app.use(express.json());
 
-app.post("api/v1/signup", (req, res) => {
+app.post("/api/v1/signup", (req, res) => {
   const requireBody = z.object({
     email: z.string().min(5).max(50).email(),
     name: z.string().min(3).max(100),
@@ -22,31 +24,54 @@ app.post("api/v1/signup", (req, res) => {
       ),
   });
 
-  const parsedDataWithSuccess = requireBody.safeParse;
+  const parsedData = requireBody.safeParse(req.body);
 
-  if (!parsedDataWithSuccess) {
+  if (!parsedData) {
     res.json({
       message: "invalid format",
-      error: parsedDataWithSuccess.error || "unknown validation error",
+      error: "unknown validation error",  
     });
     return;
   }
 
   const { email, name, password } = req.body;
 
-  const hashedPassword = bcrypt.hash(password, 5);
+  try {
+    const hashedPassword = bcrypt.hash(password, 5);
+
+    userModel.create({
+      email,
+      name,
+      password: hashedPassword,
+    });
+
+    res.status(201).json({
+      message: "you are signed up",
+    });
+  } catch (error) {
+    console.error("Signup error:", error);
+    res.status(409).json({
+      message: "user already exists",
+    });
+  }
 });
 
-app.post("api/v1/signin", (req, res) => {
+app.post("/api/v1/signin", (req, res) => {
   const { email, password } = req.body;
 });
 
-app.post("api/v1/content", (req, res) => {});
+app.post("/api/v1/content", (req, res) => {});
 
 app.get("api/v1/content", (req, res) => {});
 
-app.delete("api/v1/content", (req, res) => {});
+app.delete("/api/v1/content", (req, res) => {});
 
-app.post("api/v1/brain/share", (req, res) => {});
+app.post("/api/v1/brain/share", (req, res) => {});
 
-app.get("api/v1/brain/:shareLink", (req, res) => {});
+app.get("/api/v1/brain/:shareLink", (req, res) => {});
+
+dbConnection();
+
+app.listen(port, () => {
+  console.log(`server running at port${port}`);
+});
