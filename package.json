@@ -17,6 +17,9 @@
   "description": "",
   "main": "index.js",
   "scripts": {
+    "build":  "tsc -b",
+    "start": "node dist/index.js",
+    "dev": "run run build && npm run start",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],

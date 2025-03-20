@@ -8,52 +8,63 @@ const app = express();
 const port = 3000;
 app.use(express.json());
 
-app.post("/api/v1/signup", (req, res) => {
-  const requireBody = z.object({
-    email: z.string().min(5).max(50).email(),
-    name: z.string().min(3).max(100),
-    password: z
-      .string()
-      .min(5)
-      .max(30)
-      .regex(/[A-Z]/, "password must contain upper case letter")
-      .regex(/[a-z]/, "password must contain lower case letter")
-      .regex(
-        /[!@#$%^&*()_<>?:]/,
-        "password must contain any special character"
-      ),
-  });
+app.post("/api/v1/signup",async (req, res) => {
+  const {username, password} = req.body;
 
-  const parsedData = requireBody.safeParse(req.body);
+  await userModel.create({
+    username,
+    password
+  })
+  res.json({
+    message: "signed in"
+  })
 
-  if (!parsedData) {
-    res.json({
-      message: "invalid format",
-      error: "unknown validation error",  
-    });
-    return;
-  }
 
-  const { email, name, password } = req.body;
+  // const requireBody = z.object({
+  //   email: z.string().min(5).max(50).email(),
+  //   name: z.string().min(3).max(100),
+  //   password: z
+  //     .string()
+  //     .min(5)
+  //     .max(30)
+  //     .regex(/[A-Z]/, "password must contain upper case letter")
+  //     .regex(/[a-z]/, "password must contain lower case letter")
+  //     .regex(
+  //       /[!@#$%^&*()_<>?:]/,
+  //       "password must contain any special character"
+  //     ),
+  // });
 
-  try {
-    const hashedPassword = bcrypt.hash(password, 5);
+  // const parsedData = requireBody.safeParse(req.body);
 
-    userModel.create({
-      email,
-      name,
-      password: hashedPassword,
-    });
+  // if (!parsedData) {
+  //   res.json({
+  //     message: "invalid format",
+  //     error: "unknown validation error",  
+  //   });
+  //   return;
+  // }
 
-    res.status(201).json({
-      message: "you are signed up",
-    });
-  } catch (error) {
-    console.error("Signup error:", error);
-    res.status(409).json({
-      message: "user already exists",
-    });
-  }
+  // const { email, name, password } = req.body;
+
+  // try {
+  //   const hashedPassword = bcrypt.hash(password, 5);
+
+  //   userModel.create({
+  //     email,
+  //     name,
+  //     password: hashedPassword,
+  //   });
+
+  //   res.status(201).json({
+  //     message: "you are signed up",
+  //   });
+  // } catch (error) {
+  //   console.error("Signup error:", error);
+  //   res.status(409).json({
+  //     message: "user already exists",
+  //   });
+  // }
 });
 
 app.post("/api/v1/signin", (req, res) => {
@@ -73,5 +84,5 @@ app.get("/api/v1/brain/:shareLink", (req, res) => {});
 dbConnection();
 
 app.listen(port, () => {
-  console.log(`server running at port${port}`);
+  console.log(`server running at port ${port}`);
 });
