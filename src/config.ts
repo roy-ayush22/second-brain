@@ -1,5 +1,1 @@
-const JWT_PASSWORD = process.env.JWT_PASSWORD;
-
-module.exports = {
-  JWT_PASSWORD,
-};
+const JWT_SECRET = process.env.JWT_PASSWORD;
