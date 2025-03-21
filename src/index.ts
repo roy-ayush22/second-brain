@@ -4,8 +4,9 @@ import dbConnection from "./db-server";
 import { z } from "zod";
 import bcrypt from "bcrypt";
 import { userModel } from "./schema";
-const JWT_SECRET = "qwert123";
+import { JWT_SECRET } from "./config";
 const app = express();
+// const jwt = require("jsonwebtoken")
 const port = 3000;
 app.use(express.json());
 
@@ -35,32 +36,49 @@ app.post("/api/v1/signup", async (req, res) => {
 
   const { username, password } = req.body;
 
-  // const hashedPassword = await bcrypt.hash(password, 5);
+  const hashedPassword = await bcrypt.hash(password, 5);
 
   try {
     await userModel.create({
       username,
-      password,
-    });
-    res.status(202).json({
-      message: "you are signed in!",
+      password: hashedPassword,
     });
   } catch (e) {
     res.json({
       message: "user already exists",
     });
   }
+  res.status(403).json({
+    message: "you are signed up",
+  });
 });
 
 app.post("/api/v1/signin", async (req, res) => {
   const { username, password } = req.body;
 
-  const existingUser = await userModel.findOne({
+  const findUser = await userModel.findOne({
     username,
   });
-  if (!existingUser) {
-    res.status(403).json({
-      message: "invlaid credentials",
+  if (findUser && findUser.password) {
+    const matchPassword = await bcrypt.compare(password, findUser.password);
+    if (matchPassword) {
+      const token = jwt.sign(
+        {
+          id: findUser._id.toString(),
+        },
+        JWT_SECRET
+      );
+      res.status(202).json({
+        token,
+      });
+    } else {
+      res.status(401).json({
+        message: "incorrect password",
+      });
+    }
+  } else {
+    res.status(404).json({
+      message: "user not signed up",
     });
   }
 });
