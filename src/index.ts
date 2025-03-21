@@ -3,8 +3,9 @@ import jwt from "jsonwebtoken";
 import dbConnection from "./db-server";
 import { z } from "zod";
 import bcrypt from "bcrypt";
-import { userModel } from "./schema";
+import { contentModel, userModel } from "./schema";
 import { JWT_SECRET } from "./config";
+import { userMiddleware } from "./middleware";
 const app = express();
 // const jwt = require("jsonwebtoken")
 const port = 3000;
@@ -83,11 +84,35 @@ app.post("/api/v1/signin", async (req, res) => {
   }
 });
 
-app.post("/api/v1/content", (req, res) => {});
+app.post("/api/v1/content", userMiddleware, async (req, res) => {
+  const { link, title } = req.body;
 
-app.get("api/v1/content", (req, res) => {});
+  await contentModel.create({
+    title,
+    link,
+    // @ts-ignore
+    userId: req.userId,
+    tags: [],
+  });
+  res.json({
+    message: "content added",
+  });
+});
 
-app.delete("/api/v1/content", (req, res) => {});
+app.get("/api/v1/content", userMiddleware, async (req, res) => {
+  //@ts-ignore
+  const userId = req.userId;
+  const content = await contentModel
+    .find({
+      userId: userId,
+    })
+    .populate("userId", "username");
+  res.json({
+    content,
+  });
+});
+
+app.delete("/api/v1/content", async (req, res) => {});
 
 app.post("/api/v1/brain/share", (req, res) => {});
 

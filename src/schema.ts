@@ -2,19 +2,16 @@ import mongoose from "mongoose";
 const Schema = mongoose.Schema;
 const ObjectId = Schema.ObjectId;
 
-const UserSchema = new mongoose.Schema({
-  userId: ObjectId,
-  username: { type: String },
-  password: { type: String },
+const userSchema = new mongoose.Schema({
+  username: { type: String, unique: true },
+  password: String,
 });
 
-const ContentSchema = new mongoose.Schema({
-  _id: ObjectId,
-  link: String,
-  type: String,
+const contentSchema = new mongoose.Schema({
   title: String,
-  tags: String,
-  userId: String,
+  link: String,
+  userId: { type: mongoose.Schema.Types.ObjectId, ref: "User" }, // <-- The "ref" is crucial
+  tags: [String],
 });
 
 const TagSchema = new mongoose.Schema({
@@ -28,7 +25,7 @@ const LinkSchema = new mongoose.Schema({
   userId: String,
 });
 
-export const userModel = mongoose.model("users", UserSchema);
-export const contentModel = mongoose.model("content", ContentSchema);
+export const userModel = mongoose.model("User", userSchema);
+export const contentModel = mongoose.model("Content", contentSchema);
 export const tagsModel = mongoose.model("tags", TagSchema);
 export const linkModel = mongoose.model("links", LinkSchema);
