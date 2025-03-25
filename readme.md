@@ -1,4 +1,1 @@
--- zod val is not working
--- complete the remaining endpoints
--- create the schema for the same 
--- read about vector data search and vector embeddings
+
